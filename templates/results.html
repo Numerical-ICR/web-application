@@ -1,0 +1,147 @@
+{% extends "includes/page.html" %}
+
+
+{% block page_content %}
+
+<header class="text-center">
+    <h1 class="display-4"><a href="{{url_for('home')}}">Results</a></h1>
+    <br>
+    <p class="mb-5 font-weight-light">
+        To contribute or view the code, please
+        <a href="https://github.com/Numerical-ICR"><u>click here</u>
+            <img height="25px" width="25px" src="{{ url_for('static', filename='images/logo_github.png') }}">
+        </a>
+    </p>
+</header>
+
+
+<!-- Display Results -->
+<div class="row py-4">
+    <div class="col-lg-6 mx-auto" style="text-align:center;">
+        <form method="POST" action="{{url_for('newdata')}}">
+            <div class="input-group mb-3 px-2 py-2 shadow-sm">
+                <table class="table">
+                    <tr>
+                        <th></th>
+                        <th>Image</th>
+                        <th>Prediction</th>
+                        <th>Actual</th>
+                    </tr>
+                    {% for r in results %}
+                    <tr class="new-num">
+                        <td colspan=4>
+                            {% set img_location = "temp_images/" ~ r ~ '/' ~ r ~ '.png' %}
+                            <img class="center-image shadow-sm" height="30px"
+                                src="{{ url_for('static', filename=img_location)}}">
+                        </td>
+                    </tr>
+                    {% for x in results[r] %}
+                    <tr class="digits">
+                        <td>
+                            <button class="delete-digit badge badge-danger">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <input type="text" name="image" value="{{r}}" style="display:None">
+                            <input type="text" name="digit" value="{{x}}" style="display:None">
+                        </td>
+                        </td>
+                        {% set digit_img_location = "temp_images/" ~ r ~ '/' ~ x ~ '.png' %}
+                        <td> <img class="img-location shadow-sm" height="25px"
+                                src="{{ url_for('static', filename=digit_img_location)}}"> </td>
+                        <td class="predicted" data-predicted="{{results[r][x]}}"> {{results[r][x]}} </td>
+                        <td>
+                            <input type="text" name="actual" class="actual form-control input-correction" maxlength="1">
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+        </form>
+
+        <button class="btn btn-light m-0 px-4 download-txt" style="margin:auto">Download TxT</button>
+        <button class="btn btn-light m-0 px-4 add-data" style="margin:auto">Add to Data Training</button>
+    </div>
+</div>
+
+
+{% endblock page_content %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='JS/FileSaver/FileSaver.min.js') }}" rel="stylesheet"></script>
+
+<script>
+    $(document).ready(function () {
+
+
+        $(".delete-digit").on('click', function () {
+            $(this).closest("tr").remove();
+        });
+
+        $(".download-txt").on('click', function () {
+            data = "";
+            number = "";
+            $('tr').each(function () {
+                class_name = $(this).attr('class')
+                if (class_name == "new-num" && number != "") {
+                    data += parseFloat(number) + "\n";
+                    number = "";
+                } else if (class_name == "digits") {
+                    ml_predicted = $(this).find('.predicted').data("predicted")
+                    corrected = $(this).find('.actual').val()
+
+                    if (corrected != "") {
+                        number += corrected
+                    } else {
+                        number += ml_predicted
+                    }
+                }
+            });
+            data += number;
+
+            var file = new Blob([data], { type: "text/plain;charset=utf-8" });
+            saveAs(file, "{{session.get('Filename')}}.txt");
+        });
+
+        $(".add-data").on('click', function () {
+            data = []
+
+            $('tr').each(function () {
+                class_name = $(this).attr('class')
+                if (class_name == "digits") {
+                    image = $(this).find('.img-location ').attr('src');
+                    ml_predicted = $(this).find('.predicted').data("predicted")
+                    corrected = $(this).find('.actual').val()
+
+                    if (corrected != "") {
+                        number = corrected
+                    } else {
+                        number = ml_predicted
+                    }
+
+                    data.push({
+                        "image": image,
+                        "label": number
+                    });
+
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: "{{ url_for('newdata') }}",
+                data: JSON.stringify({ 'new_data': data }),
+                dataType: 'json',
+                contentType: 'application/json',
+                success: function (data) {
+                    alert('Data added to CSV '+ data.msg);
+                },
+                error: function (data) {
+                    alert('An Error occured!');
+                }
+            });
+
+        });
+
+    });
+</script>
+{% endblock page_scripts %}

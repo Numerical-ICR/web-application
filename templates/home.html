@@ -1,0 +1,90 @@
+{% extends "includes/page.html" %}
+
+
+{% block page_content %}
+
+<header class="text-center">
+    <h1 class="display-4"><a href="{{url_for('home')}}">Character Recognition</a></h1>
+    <p class="lead mb-0">To begin, please upload an image with numbers, after, the results will be presented on your
+        screen. Any characters with a low accuracy score will need to be manually rectified. The algorithm will learn
+        this and be improved for next time.
+    </p>
+    <br>
+    <p class="mb-5 font-weight-light">
+        To contribute or view the code, please
+        <a href="https://github.com/Numerical-ICR"><u>click here</u>
+            <img height="25px" width="25px" src="{{ url_for('static', filename='images/logo_github.png') }}">
+        </a>
+    </p>
+    <a class="btn btn-light m-0 px-4 retain-model" style="margin:auto" href="{{url_for('retrain')}}">Retrain Model</a>
+</header>
+
+
+
+<div class="row py-4">
+    <div class="col-lg-6 mx-auto">
+        <form method="POST" action="{{ url_for('preprocess') }}" enctype="multipart/form-data">
+            <div class="input-group mb-3 px-2 py-2 shadow-sm">
+                {{ form.hidden_tag() }}
+                {{ form.image_upload(id="upload", onchange="readURL(this);", class="form-control border-0") }}
+                <label id="upload-label" for="upload" class="font-weight-light text-muted">Choose file</label>
+                <div class="input-group-append">
+                    <label for="upload" class="btn btn-light m-0 px-4"> <i
+                            class="fa fa-cloud-upload mr-2 text-muted"></i><small
+                            class="text-uppercase font-weight-bold text-muted">Choose file</small></label>
+                </div>
+            </div>
+
+            <p id="preview-text" class="font-italic text-center">Image preview.</p>
+            <div class="image-area mt-4"><img id="imageResult" src="#" alt=""
+                    class="img-fluid rounded shadow-sm mx-auto d-block"></div>
+
+            <div id="next-page" class="input-group mb-3 px-2 py-2" style="justify-content: center; display:none;">
+                {{ form.update_btn(class="btn btn-light m-0 px-4", style="margin:auto") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock page_content %}
+
+{% block page_scripts %}
+<script>
+    /*  ==========================================
+        SHOW UPLOADED IMAGE
+    * ========================================== */
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#imageResult')
+                    .attr('src', e.target.result);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $(function () {
+        $('#upload').on('change', function () {
+            readURL(input);
+            $("#preview-text").hide();
+            $("#next-page").show();
+        });
+    });
+
+    /*  ==========================================
+        SHOW UPLOADED IMAGE NAME
+    * ========================================== */
+    var input = document.getElementById('upload');
+    var infoArea = document.getElementById('upload-label');
+
+    input.addEventListener('change', showFileName);
+    function showFileName(event) {
+        var input = event.srcElement;
+        var fileName = input.files[0].name;
+        infoArea.textContent = 'File name: ' + fileName;
+    }
+</script>
+{% endblock page_scripts %}

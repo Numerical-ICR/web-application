@@ -1,0 +1,11 @@
+{% extends "includes/page.html" %}
+
+{% block page_content %}
+
+<div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">{{ context }}</h4>
+    <hr>
+    <button type="button" class="btn btn-link" onclick="window.history.back()">Click here to go back!</button>
+</div>
+
+{% endblock page_content %}
