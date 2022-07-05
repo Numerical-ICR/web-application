@@ -112,7 +112,7 @@ toml==0.10.2
 tornado==6.1
 traitlets==5.0.5
 typing-extensions==3.7.4.3
-ujson==4.0.2
+ujson==5.4.0
 urllib3==1.26.6
 virtualenv==20.0.31
 wcwidth==0.2.5
